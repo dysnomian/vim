@@ -1,0 +1,134 @@
+"---------------------------------------------------------------------------
+" Initialize:
+"
+
+if &compatible
+  setglobal nocompatible
+endif
+
+function! s:source_rc(path) abort
+  execute 'source' fnameescape(expand('~/.vim/rc/' . a:path))
+endfunction
+
+let s:is_windows = has('win16') || has('win32') || has('win64')
+let s:is_cygwin = has('win32unix')
+let s:is_sudo = $SUDO_USER !=# '' && $USER !=# $SUDO_USER
+      \ && $HOME !=# expand('~'.$USER)
+      \ && $HOME ==# expand('~'.$SUDO_USER)
+
+function! IsWindows() abort
+  return s:is_windows
+endfunction
+
+function! IsMac() abort
+  return !s:is_windows && !s:is_cygwin
+      \ && (has('mac') || has('macunix') || has('gui_macvim') ||
+      \   (!executable('xdg-open') &&
+      \     system('uname') =~? '^darwin'))
+endfunction
+
+let g:python3_host_prog = '/usr/local/bin/python3'
+
+call s:source_rc('init.rc.vim')
+call s:source_rc('bundles.rc.vim')
+
+" Plugin configurations.
+
+call s:source_rc('plugins.rc.vim')
+
+filetype plugin indent on
+
+" Enable syntax color.
+syntax enable
+
+if !has('vim_starting')
+  " Installation check.
+  PlugInstall
+endif
+
+"---------------------------------------------------------------------------
+" Search:
+"
+
+" Ignore the case of normal letters.
+setglobal ignorecase
+" If the search pattern contains upper case characters, override ignorecase
+" option.
+setglobal smartcase
+
+" Enable incremental search.
+setglobal incsearch
+" Don't highlight search result.
+setglobal nohlsearch
+
+" Searches wrap around the end of the file.
+setglobal wrapscan
+
+"---------------------------------------------------------------------------
+" Edit:
+"
+
+call s:source_rc('edit.rc.vim')
+
+"---------------------------------------------------------------------------
+" View:
+"
+
+call s:source_rc('view.rc.vim')
+
+"---------------------------------------------------------------------------
+" FileType:
+"
+
+call s:source_rc('filetype.rc.vim')
+
+"---------------------------------------------------------------------------
+" Mappings:
+"
+
+call s:source_rc('mappings.rc.vim')
+
+"---------------------------------------------------------------------------
+" Commands:
+"
+
+" Display diff with the file.
+command! -nargs=1 -complete=file Diff vertical diffsplit <args>
+" Disable diff mode.
+command! -nargs=0 Undiff setlocal nodiff noscrollbind wrap
+
+" TIL File
+command TIL tabe ~/Documents/TIL.md
+
+" Todo file
+command Todo tabe ~/Documents/todo.org
+
+
+"---------------------------------------------------------------------------
+" Platform:
+"
+
+if has('nvim')
+  call s:source_rc('neovim.rc.vim')
+endif
+
+if s:is_windows
+  call s:source_rc('windows.rc.vim')
+else
+  call s:source_rc('unix.rc.vim')
+endif
+
+if has('gui_running')
+  call s:source_rc('gui.rc.vim')
+endif
+
+"---------------------------------------------------------------------------
+" Others:
+"
+
+" Default home directory.
+let t:cwd = getcwd()
+
+setglobal secure
+
+" vim: foldmethod=marker
